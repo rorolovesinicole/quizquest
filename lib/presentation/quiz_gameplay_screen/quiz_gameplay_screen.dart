@@ -64,6 +64,7 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
     _loadGameData();
   }
 
+  // ... [Animation and Data Loading logic remains the same] ...
   Future<void> _loadGameData() async {
     if (!_gameStateService.isInitialized) {
       await _gameStateService.initialize();
@@ -78,13 +79,11 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
         _levelId = args?['levelId'] as int? ?? 1;
         _levelTitle = args?['levelTitle'] as String? ?? 'Level $_levelId';
         
-        // Load power-ups from game state
         final powerUps = _gameStateService.powerUps;
         _availableHints = powerUps['hint'] ?? 3;
         _hasExtraTime = (powerUps['extra_time'] ?? 0) > 0;
         _hasEliminateOption = (powerUps['eliminate'] ?? 0) > 0;
         
-        // Load questions for this program and level
         _quizQuestions = _questionService.getQuestionsForLevel(_programId, _levelId);
         _isLoading = false;
       });
@@ -98,20 +97,16 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-
     _particleController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _questionTransitionController, curve: Curves.easeIn),
     );
-
     _slideAnimation = Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
       CurvedAnimation(parent: _questionTransitionController, curve: Curves.easeOutCubic),
     );
-
     _questionTransitionController.forward();
   }
 
@@ -132,6 +127,7 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
     });
   }
 
+  // ... [Gameplay Logic methods (handleTimeout, handleAnswerSelection, etc.) remain same] ...
   void _handleTimeout() {
     setState(() {
       _isAnswered = true;
@@ -142,7 +138,6 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
 
   void _handleAnswerSelection(int index) {
     if (_isAnswered) return;
-
     setState(() {
       _selectedAnswerIndex = index;
       _isAnswered = true;
@@ -180,7 +175,6 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
         _showFeedback = false;
         _remainingSeconds = 60;
       });
-
       _questionTransitionController.reset();
       _questionTransitionController.forward();
       _startTimer();
@@ -191,15 +185,10 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
 
   void _navigateToLevelComplete() {
     _timer?.cancel();
-    
-    // Calculate stars based on accuracy
     final accuracy = _quizQuestions.isNotEmpty ? (_correctAnswers / _quizQuestions.length * 100) : 0.0;
     int stars = 1;
-    if (accuracy >= 90) {
-      stars = 3;
-    } else if (accuracy >= 70) {
-      stars = 2;
-    }
+    if (accuracy >= 90) stars = 3;
+    else if (accuracy >= 70) stars = 2;
     
     Navigator.pushReplacementNamed(
       context,
@@ -227,76 +216,57 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
     });
   }
 
-  void _handleUseHint() {
-    if (_availableHints <= 0 || _isAnswered) return;
+  // ... [Power up handlers remain same] ...
+  void _handleUseHint() => _handlePowerUpGeneric(
+    condition: _availableHints > 0,
+    action: () {
+      setState(() => _availableHints--);
+      _gameStateService.useHint();
+      _showHintDialog();
+    }
+  );
 
-    setState(() {
-      _availableHints--;
-    });
-    
-    // Save hint usage
-    _gameStateService.useHint();
-
-    HapticFeedback.selectionClick();
-    _showHintDialog();
-  }
-
-  void _handleUseExtraTime() {
-    if (!_hasExtraTime || _isAnswered) return;
-
-    setState(() {
-      _hasExtraTime = false;
-      _remainingSeconds += 30;
-    });
-    
-    // Save power-up usage
-    _gameStateService.usePowerUp('extra_time');
-
-    HapticFeedback.mediumImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('+30 seconds added!'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-  }
+  void _handleUseExtraTime() => _handlePowerUpGeneric(
+    condition: _hasExtraTime,
+    action: () {
+      setState(() {
+        _hasExtraTime = false;
+        _remainingSeconds += 30;
+      });
+      _gameStateService.usePowerUp('extra_time');
+      _showSnackBar('+30 seconds added!');
+    }
+  );
 
   void _handleEliminateOption() {
     if (!_hasEliminateOption || _isAnswered) return;
-    
     final currentQuestion = _quizQuestions[_currentQuestionIndex];
-    final correctIndex = currentQuestion["correctIndex"] as int;
     final options = currentQuestion["options"] as List;
-    
     if (options.length <= 2) return;
 
-    setState(() {
-      _hasEliminateOption = false;
-    });
-    
-    // Save power-up usage
+    setState(() => _hasEliminateOption = false);
     _gameStateService.usePowerUp('eliminate');
-
-    // Find two wrong answers to eliminate
+    
+    final correctIndex = currentQuestion["correctIndex"] as int;
     final wrongIndices = <int>[];
     for (int i = 0; i < options.length; i++) {
       if (i != correctIndex) wrongIndices.add(i);
     }
     wrongIndices.shuffle();
-    final eliminatedIndices = wrongIndices.take(2).toList();
+    currentQuestion['eliminatedIndices'] = wrongIndices.take(2).toList();
     
-    currentQuestion['eliminatedIndices'] = eliminatedIndices;
-
+    _showSnackBar('Two wrong answers eliminated!');
+  }
+  
+  void _handlePowerUpGeneric({required bool condition, required VoidCallback action}) {
+    if (!condition || _isAnswered) return;
+    action();
     HapticFeedback.mediumImpact();
+  }
+  
+  void _showSnackBar(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Two wrong answers eliminated!'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 1),
-      ),
+      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 1)),
     );
   }
 
@@ -305,27 +275,14 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
     final correctIndex = currentQuestion["correctIndex"] as int;
     final options = currentQuestion["options"] as List;
     final correctAnswer = options[correctIndex];
-    
-    // Show a hint that narrows down the answer
     String hint = "The correct answer starts with '${correctAnswer.toString().substring(0, 1)}'";
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.lightbulb, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 8),
-            const Text('Hint'),
-          ],
-        ),
+        title: Row(children: [Icon(Icons.lightbulb, color: Theme.of(context).colorScheme.primary), const SizedBox(width: 8), const Text('Hint')]),
         content: Text(hint),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Got it!'),
-          ),
-        ],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Got it!'))],
       ),
     );
   }
@@ -345,16 +302,7 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
     if (_isLoading || _quizQuestions.isEmpty) {
       return Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(),
-              SizedBox(height: 2.h),
-              Text('Loading questions...', style: theme.textTheme.bodyMedium),
-            ],
-          ),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -367,7 +315,7 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
           children: [
             Column(
               children: [
-                // Timer and progress header
+                // Fixed Header: Timer & Progress
                 TimerHeaderWidget(
                   remainingSeconds: _remainingSeconds,
                   currentQuestion: _currentQuestionIndex + 1,
@@ -375,7 +323,40 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
                   onPause: _handlePause,
                 ),
 
-                // Game resources bar
+                // Scrollable Content: Question & Answers
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.only(bottom: 2.h),
+                    child: Column(
+                      children: [
+                        SlideTransition(
+                          position: _slideAnimation,
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: QuestionContentWidget(
+                              questionText: currentQuestion['question'] as String,
+                              imageUrl: currentQuestion['imageUrl'] as String?,
+                              imageSemanticLabel: currentQuestion['imageSemanticLabel'] as String?,
+                              questionType: currentQuestion['type'] as String? ?? 'multiple_choice',
+                            ),
+                          ),
+                        ),
+                        
+                        AnswerOptionsWidget(
+                          options: List<String>.from(currentQuestion["options"] as List),
+                          selectedIndex: _selectedAnswerIndex,
+                          correctIndex: currentQuestion["correctIndex"] as int,
+                          isAnswered: _isAnswered,
+                          eliminatedIndices: currentQuestion['eliminatedIndices'] as List<int>? ?? [],
+                          onOptionSelected: _handleAnswerSelection,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Fixed Footer: Game Resources
                 GameResourcesWidget(
                   collectedGems: _collectedGems,
                   availableHints: _availableHints,
@@ -385,38 +366,9 @@ class _QuizGameplayScreenState extends State<QuizGameplayScreen>
                   onUseExtraTime: _handleUseExtraTime,
                   onUseEliminateOption: _handleEliminateOption,
                 ),
-
-                // Question content
-                Expanded(
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: QuestionContentWidget(
-                        questionText: currentQuestion['question'] as String,
-                        imageUrl: currentQuestion['imageUrl'] as String?,
-                        imageSemanticLabel: currentQuestion['imageSemanticLabel'] as String?,
-                        questionType: currentQuestion['type'] as String? ?? 'multiple_choice',
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Answer options
-                AnswerOptionsWidget(
-                  options: List<String>.from(currentQuestion["options"] as List),
-                  selectedIndex: _selectedAnswerIndex,
-                  correctIndex: currentQuestion["correctIndex"] as int,
-                  isAnswered: _isAnswered,
-                  eliminatedIndices: currentQuestion['eliminatedIndices'] as List<int>? ?? [],
-                  onOptionSelected: _handleAnswerSelection,
-                ),
-
-                SizedBox(height: 2.h),
               ],
             ),
 
-            // Feedback overlay
             if (_showFeedback)
               FeedbackOverlayWidget(
                 isCorrect: _selectedAnswerIndex == (currentQuestion["correctIndex"] as int),

@@ -47,8 +47,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
       "isStarted": true,
       "isCompleted": false,
       "themeColor": 0xFF4A90E2,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80",
+      "imageUrl": "assets/images/programs/bsit.jpg",
       "semanticLabel":
           "Digital technology background with glowing blue circuit board patterns and binary code streams",
       "zones": [
@@ -71,8 +70,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
       "isStarted": false,
       "isCompleted": false,
       "themeColor": 0xFF7B68EE,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
+      "imageUrl": "assets/images/programs/bsba.jpg",
       "semanticLabel":
           "Modern glass skyscraper cityscape with reflective blue windows against clear sky",
       "zones": [
@@ -95,8 +93,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
       "isStarted": false,
       "isCompleted": false,
       "themeColor": 0xFF5CB85C,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&q=80",
+      "imageUrl": "assets/images/programs/bsed.jpg",
       "semanticLabel":
           "Bright classroom interior with wooden desks, green chalkboard, and large windows with natural light",
       "zones": ["Teaching Methods", "Curriculum Design", "Student Psychology"],
@@ -115,8 +112,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
       "isStarted": false,
       "isCompleted": false,
       "themeColor": 0xFFF0AD4E,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800&q=80",
+      "imageUrl": "assets/images/programs/beed.jpg",
       "semanticLabel":
           "Colorful elementary classroom with small chairs, educational posters, and bright learning materials",
       "zones": [
@@ -139,8 +135,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
       "isStarted": false,
       "isCompleted": false,
       "themeColor": 0xFFE67E22,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80",
+      "imageUrl": "assets/images/programs/bsa.jpg",
       "semanticLabel":
           "Professional accounting workspace with calculator, financial documents, and spreadsheets on wooden desk",
       "zones": ["Financial Accounting", "Auditing", "Tax Management"],
@@ -159,8 +154,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
       "isStarted": false,
       "isCompleted": false,
       "themeColor": 0xFFD9534F,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80",
+      "imageUrl": "assets/images/programs/bshm.jpg",
       "semanticLabel":
           "Luxury hotel lobby with elegant chandelier, marble floors, and modern reception desk",
       "zones": ["Hotel Operations", "Food Service", "Event Management"],
@@ -179,8 +173,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
       "isStarted": true,
       "isCompleted": false,
       "themeColor": 0xFF4A90E2,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80",
+      "imageUrl": "assets/images/programs/bscs.jpg",
       "semanticLabel":
           "Computer screen displaying colorful programming code with syntax highlighting in dark theme",
       "zones": [
@@ -203,8 +196,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
       "isStarted": false,
       "isCompleted": false,
       "themeColor": 0xFF7B68EE,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80",
+      "imageUrl": "assets/images/programs/bscpe.jpg",
       "semanticLabel":
           "Close-up of electronic circuit board with microchips, resistors, and glowing LED components",
       "zones": [
@@ -227,8 +219,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
       "isStarted": false,
       "isCompleted": false,
       "themeColor": 0xFFF0AD4E,
-      "imageUrl":
-          "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&q=80",
+      "imageUrl": "assets/images/programs/ahm.jpg",
       "semanticLabel":
           "Restaurant interior with elegant table settings, wine glasses, and ambient lighting",
       "zones": ["Guest Services", "Food & Beverage", "Front Office"],
@@ -471,7 +462,7 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
   void _handleProgramAction(Map<String, dynamic> program, String action) async {
     final theme = Theme.of(context);
     final gameStateService = GameStateService();
-    
+
     if (!gameStateService.isInitialized) {
       await gameStateService.initialize();
     }

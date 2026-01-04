@@ -183,33 +183,46 @@ class _ProgressAnalyticsState extends State<ProgressAnalytics>
       ),
       body: RefreshIndicator(
         onRefresh: _refreshAnalytics,
-        child: Column(
-          children: [
-            _buildFilterHeader(theme),
-            _buildTabBar(theme),
-            Expanded(
-              child: _isLoading
-                  ? _buildLoadingState(theme)
-                  : TabBarView(
-                      controller: _tabController,
-                      children: [
-                        OverallPerformanceWidget(
-                          analyticsData: _analyticsData,
-                          selectedProgram: _selectedProgram,
-                          dateRange: _selectedDateRange!,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Column(
+              children: [
+                _buildFilterHeader(theme),
+                _buildTabBar(theme),
+                Expanded(
+                  child: _isLoading
+                      ? _buildLoadingState(theme)
+                      : TabBarView(
+                          controller: _tabController,
+                          children: [
+                            SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: OverallPerformanceWidget(
+                                analyticsData: _analyticsData,
+                                selectedProgram: _selectedProgram,
+                                dateRange: _selectedDateRange!,
+                              ),
+                            ),
+                            SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: ProgramBreakdownWidget(
+                                selectedProgram: _selectedProgram,
+                                dateRange: _selectedDateRange!,
+                              ),
+                            ),
+                            SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: TrendsAnalysisWidget(
+                                selectedProgram: _selectedProgram,
+                                dateRange: _selectedDateRange!,
+                              ),
+                            ),
+                          ],
                         ),
-                        ProgramBreakdownWidget(
-                          selectedProgram: _selectedProgram,
-                          dateRange: _selectedDateRange!,
-                        ),
-                        TrendsAnalysisWidget(
-                          selectedProgram: _selectedProgram,
-                          dateRange: _selectedDateRange!,
-                        ),
-                      ],
-                    ),
-            ),
-          ],
+                ),
+              ],
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -240,10 +253,16 @@ class _ProgressAnalyticsState extends State<ProgressAnalytics>
               // Already on Progress Analytics
               break;
             case 2:
-              Navigator.pushReplacementNamed(context, AppRoutes.achievementGallery);
+              Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.achievementGallery,
+              );
               break;
             case 3:
-              Navigator.pushReplacementNamed(context, AppRoutes.characterCustomization);
+              Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.characterCustomization,
+              );
               break;
           }
         },

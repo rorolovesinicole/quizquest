@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 
+import 'package:fluttermoji/fluttermoji.dart';
 import '../../../core/app_export.dart';
 
 /// Character status widget for Main Menu Screen
 ///
 /// Displays character avatar, level, and knowledge gems with long-press customization
 class CharacterStatusWidget extends StatelessWidget {
-  final String characterAvatar;
   final int currentLevel;
   final int knowledgeGems;
   final VoidCallback onAvatarLongPress;
 
   const CharacterStatusWidget({
     super.key,
-    required this.characterAvatar,
     required this.currentLevel,
     required this.knowledgeGems,
     required this.onAvatarLongPress,
@@ -79,13 +78,9 @@ class CharacterStatusWidget extends StatelessWidget {
                     ],
                   ),
                   child: ClipOval(
-                    child: CustomImageWidget(
-                      imageUrl: characterAvatar,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      semanticLabel:
-                          "Player character avatar showing current customization and level progress",
+                    child: FluttermojiCircleAvatar(
+                      radius: 40,
+                      backgroundColor: theme.colorScheme.surface,
                     ),
                   ),
                 ),

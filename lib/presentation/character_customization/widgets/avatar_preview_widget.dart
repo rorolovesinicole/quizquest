@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
+import 'package:fluttermoji/fluttermoji.dart';
 import '../../../core/app_export.dart';
 
 /// Avatar Preview Widget
@@ -192,26 +193,11 @@ class _AvatarPreviewWidgetState extends State<AvatarPreviewWidget>
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Base avatar
-            CustomImageWidget(
-              imageUrl:
-                  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-              fit: BoxFit.cover,
-              semanticLabel: 'Character avatar base illustration',
-            ),
-
-            // Overlay customization layers
-            // In a real implementation, these would be actual customization layers
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.1),
-                  ],
-                ),
+            // Live Fluttermoji Avatar
+            Center(
+              child: FluttermojiCircleAvatar(
+                radius: 30.w,
+                backgroundColor: theme.colorScheme.surface,
               ),
             ),
           ],

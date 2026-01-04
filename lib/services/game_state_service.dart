@@ -331,6 +331,61 @@ class GameStateService {
     return total;
   }
 
+  // ============ ECONOMY ============
+  
+  static const String _keyOwnedItems = 'owned_items';
+  
+  /// Get set of owned item IDs
+  Set<String> get ownedItems {
+    final itemsList = _prefs?.getStringList(_keyOwnedItems);
+    return itemsList?.toSet() ?? {'default_outfit', 'default_hair'};
+  }
+  
+  /// Check if an item is owned
+  bool isItemOwned(String itemId) {
+    return ownedItems.contains(itemId);
+  }
+  
+  /// Purchase an item
+  /// Returns true if successful, false if not enough gems
+  Future<bool> purchaseItem(String itemId, int cost) async {
+    if (isItemOwned(itemId)) return true;
+    
+    if (totalGems >= cost) {
+      await setTotalGems(totalGems - cost);
+      
+      final currentItems = ownedItems;
+      currentItems.add(itemId);
+      await _prefs?.setStringList(_keyOwnedItems, currentItems.toList());
+      return true;
+    }
+    return false;
+  }
+
+  // ============ ACHIEVEMENTS ============
+  
+  static const String _keyUnlockedAchievements = 'unlocked_achievements';
+  
+  /// Get set of unlocked achievement IDs
+  Set<int> get unlockedAchievementIds {
+    final ids = _prefs?.getStringList(_keyUnlockedAchievements);
+    return ids?.map((id) => int.parse(id)).toSet() ?? {};
+  }
+  
+  /// Check if achievement is unlocked
+  bool isAchievementUnlocked(int id) {
+    return unlockedAchievementIds.contains(id);
+  }
+  
+  /// Unlock an achievement
+  Future<void> unlockAchievement(int id) async {
+    if (!isAchievementUnlocked(id)) {
+      final currentIds = unlockedAchievementIds;
+      currentIds.add(id);
+      await _prefs?.setStringList(_keyUnlockedAchievements, currentIds.map((e) => e.toString()).toList());
+    }
+  }
+
   // ============ RESET ============
 
   /// Reset all progress (for new game)
@@ -342,6 +397,10 @@ class GameStateService {
     await _prefs?.setBool(_keyHasSavedProgress, false);
     await _prefs?.remove(_keyCurrentProgram);
     await _prefs?.remove(_keyPowerUps);
+    await _prefs?.remove(_keyPlayerName);
+    await _prefs?.remove(_keyCharacterAvatar);
+    await _prefs?.remove(_keyOwnedItems);
+    await _prefs?.remove(_keyUnlockedAchievements);
     
     // Clear all program progress
     final keys = _prefs?.getKeys() ?? {};

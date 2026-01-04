@@ -34,8 +34,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
   bool _hasSavedProgress = false;
   int _currentLevel = 1;
   int _knowledgeGems = 50;
-  String _characterAvatar =
-      "https://api.dicebear.com/7.x/avataaars/png?seed=Felix&backgroundColor=b6e3f4";
+
 
   final GameStateService _gameStateService = GameStateService();
 
@@ -80,7 +79,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
         _hasSavedProgress = _gameStateService.hasSavedProgress;
         _currentLevel = _gameStateService.currentLevel;
         _knowledgeGems = _gameStateService.totalGems;
-        _characterAvatar = _gameStateService.characterAvatar;
+
       });
     }
   }
@@ -196,9 +195,7 @@ class _MainMenuScreenState extends State<MainMenuScreen>
 
                       const SizedBox(height: 48),
 
-                      // Character status
-                      CharacterStatusWidget(
-                        characterAvatar: _characterAvatar,
+                        CharacterStatusWidget(
                         currentLevel: _currentLevel,
                         knowledgeGems: _knowledgeGems,
                         onAvatarLongPress: _handleCharacterCustomization,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
+import 'package:fluttermoji/fluttermoji.dart';
 import '../../../core/app_export.dart';
 
 /// Animated character avatar that moves along the completed path
@@ -115,14 +116,10 @@ class _CharacterAvatarWidgetState extends State<CharacterAvatarWidget>
                     ],
                   ),
                   child: ClipOval(
-                    child: CustomImageWidget(
-                      imageUrl: widget.characterData['avatarUrl'] as String,
-                      width: 16.w,
-                      height: 16.w,
-                      fit: BoxFit.cover,
-                      semanticLabel:
-                          widget.characterData['avatarDescription'] as String,
-                    ),
+                      child: FluttermojiCircleAvatar(
+                        radius: 8.w,
+                        backgroundColor: Colors.transparent,
+                      ),
                   ),
                 ),
 

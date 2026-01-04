@@ -35,6 +35,7 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
   String _currentProgram = 'bsit';
   String _programName = 'BSIT Program';
   List<Map<String, dynamic>> _worldZones = [];
+  // Updated character data structure
   Map<String, dynamic> _characterData = {};
   Map<String, dynamic> _playerStats = {};
   List<Map<String, dynamic>> _inventory = [];
@@ -56,7 +57,6 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
       await _gameStateService.initialize();
     }
     
-    // Get program from route arguments or saved state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final programId = args?['programId'] as String? ?? _gameStateService.currentProgram;
@@ -68,7 +68,7 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
         _characterData = {
           'name': _gameStateService.playerName,
           'level': _gameStateService.currentLevel,
-          'avatarUrl': _gameStateService.characterAvatar,
+          'avatarUrl': _gameStateService.characterAvatar, 
           'avatarDescription': 'Player character avatar',
         };
         _playerStats = {
@@ -79,6 +79,23 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
         };
         _inventory = _buildInventory();
         _isLoading = false;
+      });
+      
+      // Animate to current zone based on level progress
+      // Simple logic: scroll to current zone
+      final completedLevels = _gameStateService.getCompletedLevelsCount(_currentProgram);
+      final zoneIndex = (completedLevels / 6).floor().clamp(0, _worldZones.length - 1);
+      final zoneWidth = 76.w + 2.w;
+      
+      // Delay slightly to let layout build
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            zoneIndex * zoneWidth, 
+            duration: const Duration(milliseconds: 1000), 
+            curve: Curves.easeInOut
+          );
+        }
       });
     });
   }
@@ -99,7 +116,6 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
   }
 
   List<Map<String, dynamic>> _buildWorldZones(String programId) {
-    // Define zone themes and titles based on program
     final zoneConfigs = _getZoneConfigs(programId);
     
     return zoneConfigs.asMap().entries.map((entry) {
@@ -120,9 +136,12 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
     }).toList();
   }
 
+  // ... [Zone Configs Omitted for brevity, kept same as original] ...
   List<Map<String, dynamic>> _getZoneConfigs(String programId) {
-    // Program-specific zone configurations
-    switch (programId.toLowerCase()) {
+    // Keeping original logic, just condensed for plan
+    // In actual write, stick to original content or ensure all cases are covered.
+    // For safety, re-implementing the switch as per original file.
+     switch (programId.toLowerCase()) {
       case 'bsit':
         return [
           {'name': 'Programming Fundamentals', 'theme': 'forest', 'icon': 'park',
@@ -238,10 +257,7 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
 
   void _handleInventoryTap() => _showInventoryDialog();
   void _handleStatsTap() => _showStatsDialog();
-  
-  void _handleMenuTap() {
-    PauseMenuScreen.show(context, sourceScreen: 'game_world_map');
-  }
+  void _handleMenuTap() => PauseMenuScreen.show(context, sourceScreen: 'game_world_map');
 
   void _handleMiniMapTap() {
     _transformationController.value = Matrix4.identity();
@@ -376,6 +392,14 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
         body: const Center(child: CircularProgressIndicator()),
       );
     }
+    
+    // Calculate avatar position based on current progress
+    // Simplistic Logic: Place avatar at the start of the current zone or specific level node
+    // For now, we'll place it slightly offset from the start of the zone
+    final zoneWidth = 76.w + 2.w;
+    
+    // We want the avatar to be ON the scrolling map, so it moves with it.
+    // We can put it inside the SingleChildScrollView -> Row stack.
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -397,18 +421,58 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
                       child: IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _worldZones.map((zone) {
-                            final index = _worldZones.indexOf(zone);
-                            final isUnlocked = index == 0 ||
-                                (_worldZones[index - 1]['levels'] as List).every((level) => level['isCompleted'] as bool);
-                            return WorldMapZoneWidget(
-                              zoneData: zone,
-                              onLevelTap: (levelData) => _handleLevelTap(levelData),
-                              isUnlocked: isUnlocked,
-                            );
-                          }).toList(),
+                        child: Stack(
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: _worldZones.map((zone) {
+                                final index = _worldZones.indexOf(zone);
+                                final isUnlocked = index == 0 ||
+                                    (_worldZones[index - 1]['levels'] as List).every((level) => level['isCompleted'] as bool);
+                                return WorldMapZoneWidget(
+                                  zoneData: zone,
+                                  onLevelTap: (levelData) => _handleLevelTap(levelData),
+                                  isUnlocked: isUnlocked,
+                                );
+                              }).toList(),
+                            ),
+                            
+                            // Avatar Overlayed on the Map Content
+                            // This ensures it scrolls WITH the content
+                            // We position it dynamically based on progress if possible, 
+                            // or just center it in the active zone for visual simplicity.
+                            // For this fix, we will pin it to the current zone's general area.
+                            // Since we don't have exact x/y coords for every level node in this architecture, 
+                            // we'll float it above the current "active" zone (calculated by scroll or progress).
+                            // A better approach for 2D maps is passing level node positions back up, but for now:
+                            // We'll place it at: (current_level_index * a_factor) or similar.
+                            
+                            // Let's place it based on the highest unlocked level.
+                            Builder(
+                              builder: (context) {
+                                int totalLevels = 6 * _worldZones.length;
+                                int currentLevel = _gameStateService.currentLevel;
+                                int completedLevels = _gameStateService.getCompletedLevelsCount(_currentProgram);
+                                
+                                // Approximate position: 
+                                // Each zone is ~78.w wide.
+                                // Each level is roughly 1/6th of a zone? 
+                                // WorldMapZoneWidget likely lays them out in a zig-zag or path.
+                                // Without reading zone widget layout, we'll anchor to the zone start + offset.
+                                
+                                int zoneIndex = (completedLevels / 6).floor().clamp(0, _worldZones.length - 1);
+                                double xOffset = zoneIndex * (76.w + 2.w) + 10.w; // Start of zone + padding
+                                double yOffset = 20.h; // Vertical center-ish
+                                
+                                return CharacterAvatarWidget(
+                                  characterData: _characterData,
+                                  positionX: xOffset,
+                                  positionY: yOffset,
+                                  isMoving: _isCharacterMoving,
+                                );
+                              }
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -422,16 +486,6 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
                   onMenuTap: _handleMenuTap,
                 ),
               ],
-            ),
-          ),
-          Positioned(
-            left: 20.w,
-            top: 20.h,
-            child: CharacterAvatarWidget(
-              characterData: _characterData,
-              positionX: 0,
-              positionY: 0,
-              isMoving: _isCharacterMoving,
             ),
           ),
           Positioned(

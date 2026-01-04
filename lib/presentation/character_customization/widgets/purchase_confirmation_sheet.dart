@@ -12,24 +12,29 @@ import '../../../core/app_export.dart';
 /// - Current balance check
 /// - Clear confirm/cancel actions
 class PurchaseConfirmationSheet extends StatelessWidget {
-  final Map<String, dynamic> item;
+  final String itemName;
+  final String itemDescription;
+  final int gemCost;
   final int currentGemBalance;
   final VoidCallback onConfirm;
   final VoidCallback onCancel;
 
   const PurchaseConfirmationSheet({
     super.key,
-    required this.item,
+    required this.itemName,
+    required this.itemDescription,
+    required this.gemCost,
     required this.currentGemBalance,
     required this.onConfirm,
-    required this.onCancel,
+    this.onCancel = _defaultOnCancel,
   });
+
+  static void _defaultOnCancel() {}
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cost = item['cost'] as int;
-    final canAfford = currentGemBalance >= cost;
+    final canAfford = currentGemBalance >= gemCost;
 
     return Container(
       decoration: BoxDecoration(
@@ -55,29 +60,33 @@ class PurchaseConfirmationSheet extends StatelessWidget {
           Text('Purchase Item', style: theme.textTheme.headlineSmall),
           SizedBox(height: 3.h),
 
-          // Item preview
+          // Item preview icon (generic)
           Container(
-            width: 30.w,
-            height: 30.w,
+            width: 20.w,
+            height: 20.w,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4.w),
-              border: Border.all(color: theme.dividerColor, width: 1),
+              color: theme.colorScheme.primaryContainer,
+              shape: BoxShape.circle,
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4.w),
-              child: CustomImageWidget(
-                imageUrl: item['image'] as String,
-                fit: BoxFit.cover,
-                semanticLabel: item['semanticLabel'] as String,
-              ),
+            child: Icon(
+              Icons.stars,
+              size: 10.w,
+              color: theme.colorScheme.primary,
             ),
           ),
           SizedBox(height: 2.h),
 
           // Item name
           Text(
-            item['name'] as String,
+            itemName,
             style: theme.textTheme.titleLarge,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 1.h),
+
+          Text(
+            itemDescription,
+            style: theme.textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 3.h),
@@ -103,7 +112,7 @@ class PurchaseConfirmationSheet extends StatelessWidget {
                 ),
                 SizedBox(width: 2.w),
                 Text(
-                  cost.toString(),
+                  gemCost.toString(),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     color: const Color(0xFF6B73FF),
                     fontWeight: FontWeight.w700,
