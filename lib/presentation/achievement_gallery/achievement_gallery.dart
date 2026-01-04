@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_bottom_bar.dart';
 import '../../widgets/custom_icon_widget.dart';
-import './widgets/achievement_category_section.dart';
-import './widgets/achievement_detail_modal.dart';
-import './widgets/achievement_header_stats.dart';
 import '../../services/game_state_service.dart';
 
 class AchievementGallery extends StatefulWidget {
@@ -19,171 +16,154 @@ class AchievementGallery extends StatefulWidget {
 
 class _AchievementGalleryState extends State<AchievementGallery>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
   int _currentBottomNavIndex = 2;
-  String _searchQuery = '';
-  bool _isSearching = false;
-  final TextEditingController _searchController = TextEditingController();
+  late TabController _tabController;
   final GameStateService _gameStateService = GameStateService();
+
+  List<Map<String, dynamic>> _programAchievements = [];
+  List<Map<String, dynamic>> _specialAchievements = [];
+  Map<String, dynamic> _playerStats = {};
+
+  // Custom Color Palette for Colorful Theme
+  static const Color kPrimaryPurple = Color(0xFF6C63FF);
+  static const Color kPrimaryOrange = Color(0xFFFF6584);
+  static const Color kPrimaryBlue = Color(0xFF4FC3F7);
+  static const Color kBgColor = Color(0xFFFAFAFA); // Light Grey/White
+  static const Color kCardColor = Colors.white;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadAchievementData();
+    _loadData();
   }
 
-  Future<void> _loadAchievementData() async {
+  Future<void> _loadData() async {
     if (!_gameStateService.isInitialized) {
       await _gameStateService.initialize();
     }
-    setState(() {});
-  }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _searchController.dispose();
-    super.dispose();
-  }
+    // Load player stats
+    _playerStats = {
+      'totalXP': _gameStateService.totalXP,
+      'totalGems': _gameStateService.totalGems,
+      'level': _gameStateService.currentLevel,
+    };
 
-  // Dynamic achievements list
-  List<Map<String, dynamic>> get _achievements {
     final unlockedIds = _gameStateService.unlockedAchievementIds;
+    final newProgramAchievements = <Map<String, dynamic>>[];
+    final newSpecialAchievements = <Map<String, dynamic>>[];
 
-    // Base data with dynamic unlocked status
-    return [
-      {
-        "id": 1,
-        "category": "Academic Excellence",
-        "title": "First Steps",
-        "description": "Complete your first quiz successfully",
-        "icon": "school",
-        "unlocked": unlockedIds.contains(1),
-        "unlockDate": "2025-12-15",
-        "rarity": 95.5,
-        "image":
-            "https://img.rocket.new/generatedImages/rocket_gen_img_16647e395-1765368744119.png",
-        "semanticLabel":
-            "Open textbook with colorful sticky notes on wooden desk with coffee cup and glasses",
-      },
-      {
-        "id": 2,
-        "category": "Academic Excellence",
-        "title": "Knowledge Seeker",
-        "description": "Complete 10 quizzes across different programs",
-        "icon": "menu_book",
-        "unlocked": unlockedIds.contains(2),
-        "unlockDate": "2025-12-20",
-        "rarity": 78.3,
-        "image": "https://images.unsplash.com/photo-1592503286362-34e28f5a5ff7",
-        "semanticLabel":
-            "Stack of colorful books with reading glasses on top against white background",
-      },
-      {
-        "id": 3,
-        "category": "Academic Excellence",
-        "title": "Master Scholar",
-        "description": "Complete all levels in one academic program",
-        "icon": "workspace_premium",
-        "unlocked": unlockedIds.contains(3),
-        "unlockDate": null,
-        "rarity": 45.2,
-        "image":
-            "https://img.rocket.new/generatedImages/rocket_gen_img_16558c44f-1766953755377.png",
-        "semanticLabel":
-            "Graduation cap and diploma scroll with red ribbon on wooden surface",
-      },
-      {
-        "id": 4,
-        "category": "Speed Master",
-        "title": "Quick Thinker",
-        "description": "Complete a quiz in under 2 minutes",
-        "icon": "flash_on",
-        "unlocked": unlockedIds.contains(4),
-        "unlockDate": "2025-12-18",
-        "rarity": 65.8,
-        "image":
-            "https://img.rocket.new/generatedImages/rocket_gen_img_1e56f4bc4-1766745239097.png",
-        "semanticLabel":
-            "Yellow lightning bolt icon on dark blue background with glowing effect",
-      },
-      {
-        "id": 5,
-        "category": "Speed Master",
-        "title": "Lightning Fast",
-        "description": "Complete 5 quizzes in under 90 seconds each",
-        "icon": "bolt",
-        "unlocked": unlockedIds.contains(5),
-        "unlockDate": null,
-        "rarity": 32.1,
-        "image": "https://images.unsplash.com/photo-1641567926412-7a6158b8e81f",
-        "semanticLabel":
-            "Stopwatch showing fast time with motion blur effect on dark background",
-      },
-      {
-        "id": 6,
-        "category": "Perfect Scores",
-        "title": "Perfectionist",
-        "description": "Score 100% on any quiz",
-        "icon": "stars",
-        "unlocked": unlockedIds.contains(6),
-        "unlockDate": "2025-12-22",
-        "rarity": 58.7,
-        "image":
-            "https://img.rocket.new/generatedImages/rocket_gen_img_13e17ad8a-1766559729302.png",
-        "semanticLabel":
-            "Gold star trophy with sparkles on blue gradient background",
-      },
-      {
-        "id": 7,
-        "category": "Perfect Scores",
-        "title": "Flawless Victory",
-        "description": "Score 100% on 10 consecutive quizzes",
-        "icon": "emoji_events",
-        "unlocked": unlockedIds.contains(7),
-        "unlockDate": null,
-        "rarity": 15.4,
-        "image":
-            "https://img.rocket.new/generatedImages/rocket_gen_img_155fde3e3-1767017434226.png",
-        "semanticLabel":
-            "Golden trophy cup with laurel wreath on marble pedestal",
-      },
-      {
-        "id": 8,
-        "category": "Special Events",
-        "title": "Early Bird",
-        "description": "Complete a quiz before 8 AM",
-        "icon": "wb_sunny",
-        "unlocked": unlockedIds.contains(8),
-        "unlockDate": "2025-12-16",
-        "rarity": 42.9,
-        "image": "https://images.unsplash.com/photo-1660387673481-d08e2792c038",
-        "semanticLabel":
-            "Sunrise over mountains with orange and pink sky and silhouetted peaks",
-      },
-      {
-        "id": 9,
-        "category": "Special Events",
-        "title": "Weekend Warrior",
-        "description": "Complete 5 quizzes on weekends",
-        "icon": "celebration",
-        "unlocked": unlockedIds.contains(9),
-        "unlockDate": null,
-        "rarity": 51.3,
-        "image": "https://images.unsplash.com/photo-1578146003982-3e89cc2c606b",
-        "semanticLabel":
-            "Colorful confetti and party streamers falling against white background",
-      },
+    // 1. Program Achievements (Novice/Expert/Master)
+    final programs = [
+      {'id': 'bsit', 'name': 'BSIT', 'color': Colors.blue},
+      {'id': 'bsba', 'name': 'BSBA', 'color': Colors.amber},
+      {'id': 'bsed', 'name': 'BSED', 'color': Colors.green},
+      {'id': 'beed', 'name': 'BEED', 'color': Colors.teal},
+      {'id': 'bsa', 'name': 'BSA', 'color': Colors.indigo},
+      {'id': 'bshm', 'name': 'BSHM', 'color': Colors.orange},
+      {'id': 'bscs', 'name': 'BSCS', 'color': Colors.deepPurple},
+      {'id': 'bscpe', 'name': 'BSCpE', 'color': Colors.cyan},
+      {'id': 'ahm', 'name': 'AHM', 'color': Colors.pink},
     ];
+
+    final programPrefixes = {
+      'bsit': 100,
+      'bsba': 200,
+      'bsed': 300,
+      'beed': 400,
+      'bsa': 500,
+      'bshm': 600,
+      'bscs': 700,
+      'bscpe': 800,
+      'ahm': 900,
+    };
+
+    for (var program in programs) {
+      final pid = program['id'] as String;
+      final pname = program['name'] as String;
+      // final pColor = program['color'] as Color; // Unused
+      final prefix = programPrefixes[pid] ?? 1000;
+
+      // Novice (Bronze)
+      newProgramAchievements.add({
+        "id": prefix + 1,
+        "category": pname,
+        "title": "Novice",
+        "icon": "verified",
+        "unlocked": unlockedIds.contains(prefix + 1),
+        "tier": "Bronze",
+        "color": const Color(0xFFCD7F32), // Bronze
+      });
+
+      // Expert (Silver)
+      newProgramAchievements.add({
+        "id": prefix + 2,
+        "category": pname,
+        "title": "Expert",
+        "icon": "workspace_premium",
+        "unlocked": unlockedIds.contains(prefix + 2),
+        "tier": "Silver",
+        "color": const Color(0xFFC0C0C0), // Silver
+      });
+
+      // Master (Gold)
+      newProgramAchievements.add({
+        "id": prefix + 3,
+        "category": pname,
+        "title": "Master",
+        "icon": "military_tech",
+        "unlocked": unlockedIds.contains(prefix + 3),
+        "tier": "Gold",
+        "color": const Color(0xFFFFD700), // Gold
+      });
+    }
+
+    // 2. Special Achievements (Level-based)
+    // Perfect Scholar (88881)
+    newSpecialAchievements.add({
+      "id": 88881,
+      "title": "Perfect Scholar",
+      "description": "90% Accuracy in a Level",
+      "icon": "school",
+      "unlocked": unlockedIds.contains(88881),
+      "startColor": const Color(0xFF9C27B0),
+      "endColor": const Color(0xFFE040FB),
+    });
+
+    // Speed Demon (88882)
+    newSpecialAchievements.add({
+      "id": 88882,
+      "title": "Speed Demon",
+      "description": "< 3 Mins Completion",
+      "icon": "bolt",
+      "unlocked": unlockedIds.contains(88882),
+      "startColor": const Color(0xFFFF9800),
+      "endColor": const Color(0xFFFFC107),
+    });
+
+    // Star Collector (88883)
+    newSpecialAchievements.add({
+      "id": 88883,
+      "title": "Star Collector",
+      "description": "Earned 3 Stars",
+      "icon": "star",
+      "unlocked": unlockedIds.contains(88883),
+      "startColor": const Color(0xFFFFD700),
+      "endColor": const Color(0xFFFFE082),
+    });
+
+    if (mounted) {
+      setState(() {
+        _programAchievements = newProgramAchievements;
+        _specialAchievements = newSpecialAchievements;
+      });
+    }
   }
 
   void _onBottomNavTapped(int index) {
     if (index == _currentBottomNavIndex) return;
-
-    setState(() {
-      _currentBottomNavIndex = index;
-    });
+    setState(() => _currentBottomNavIndex = index);
 
     switch (index) {
       case 0:
@@ -193,7 +173,6 @@ class _AchievementGalleryState extends State<AchievementGallery>
         Navigator.pushReplacementNamed(context, AppRoutes.progressAnalytics);
         break;
       case 2:
-        // Current screen (Achievement Gallery)
         break;
       case 3:
         Navigator.pushReplacementNamed(
@@ -204,26 +183,9 @@ class _AchievementGalleryState extends State<AchievementGallery>
     }
   }
 
-  List<Map<String, dynamic>> get _filteredAchievements {
-    if (_searchQuery.isEmpty) {
-      return _achievements;
-    }
-    return _achievements
-        .where(
-          (achievement) =>
-              (achievement["title"] as String).toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              ) ||
-              (achievement["category"] as String).toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              ),
-        )
-        .toList();
-  }
-
-  Map<String, List<Map<String, dynamic>>> get _groupedAchievements {
+  Map<String, List<Map<String, dynamic>>> get _groupedProgramAchievements {
     final Map<String, List<Map<String, dynamic>>> grouped = {};
-    for (var achievement in _filteredAchievements) {
+    for (var achievement in _programAchievements) {
       final category = achievement["category"] as String;
       grouped.putIfAbsent(category, () => []);
       grouped[category]!.add(achievement);
@@ -231,270 +193,145 @@ class _AchievementGalleryState extends State<AchievementGallery>
     return grouped;
   }
 
-  int get _totalAchievements => _achievements.length;
-  int get _unlockedCount =>
-      _achievements.where((a) => a["unlocked"] == true).length;
-  double get _completionPercentage =>
-      (_unlockedCount / _totalAchievements) * 100;
-
-  Future<void> _handleRefresh() async {
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Achievements updated'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  void _showAchievementDetail(Map<String, dynamic> achievement) {
-    HapticFeedback.mediumImpact();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => AchievementDetailModal(achievement: achievement),
-    );
-  }
-
-  void _showAchievementGuide() {
-    HapticFeedback.lightImpact();
-    showDialog(
-      context: context,
-      builder: (context) {
-        final theme = Theme.of(context);
-        return AlertDialog(
-          title: Text('Achievement Guide', style: theme.textTheme.titleLarge),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Unlock achievements by:',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _buildGuideItem(
-                  theme,
-                  'Academic Excellence',
-                  'Complete quizzes and master programs',
-                ),
-                _buildGuideItem(
-                  theme,
-                  'Speed Master',
-                  'Finish quizzes quickly',
-                ),
-                _buildGuideItem(theme, 'Perfect Scores', 'Get 100% on quizzes'),
-                _buildGuideItem(
-                  theme,
-                  'Special Events',
-                  'Complete challenges at specific times',
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Got it!'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildGuideItem(ThemeData theme, String title, String description) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            margin: const EdgeInsets.only(top: 6, right: 8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              shape: BoxShape.circle,
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(description, style: theme.textTheme.bodySmall),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: _isSearching
-          ? AppBar(
-              backgroundColor: theme.colorScheme.surface,
-              foregroundColor: theme.colorScheme.onSurface,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  setState(() {
-                    _isSearching = false;
-                    _searchQuery = '';
-                    _searchController.clear();
-                  });
-                },
-                tooltip: 'Back',
-              ),
-              title: TextField(
-                controller: _searchController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'Search achievements...',
-                  border: InputBorder.none,
-                  hintStyle: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                style: theme.textTheme.bodyLarge,
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-              ),
-              actions: [
-                if (_searchQuery.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      setState(() {
-                        _searchQuery = '';
-                        _searchController.clear();
-                      });
-                    },
-                    tooltip: 'Clear',
-                  ),
-              ],
-            )
-          : CustomAppBar(
-              title: 'Achievements',
-              variant: CustomAppBarVariant.standard,
-              actions: [
-                IconButton(
-                  icon: CustomIconWidget(
-                    iconName: 'search',
-                    color: theme.colorScheme.onSurface,
-                    size: 24,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isSearching = true;
-                    });
-                  },
-                  tooltip: 'Search',
-                ),
-                IconButton(
-                  icon: CustomIconWidget(
-                    iconName: 'help_outline',
-                    color: theme.colorScheme.onSurface,
-                    size: 24,
-                  ),
-                  onPressed: _showAchievementGuide,
-                  tooltip: 'Achievement Guide',
-                ),
-              ],
-            ),
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Column(
-              children: [
-                AchievementHeaderStats(
-                  totalAchievements: _totalAchievements,
-                  unlockedCount: _unlockedCount,
-                  completionPercentage: _completionPercentage,
-                ),
-                Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    labelColor: theme.colorScheme.primary,
-                    unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
-                    indicatorColor: theme.colorScheme.primary,
-                    tabs: const [
-                      Tab(text: 'Achievements'),
-                      Tab(text: 'Locked'),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: _filteredAchievements.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CustomIconWidget(
-                                iconName: 'search_off',
-                                color: theme.colorScheme.onSurfaceVariant,
-                                size: 64,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No achievements found',
-                                style: theme.textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Try a different search term',
-                                style: theme.textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        )
-                      : TabBarView(
-                          controller: _tabController,
+      backgroundColor: kBgColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Styled AppBar / Header
+            Container(
+              padding: EdgeInsets.fromLTRB(5.w, 2.h, 5.w, 0),
+              color: kBgColor,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Achievements',
+                        style: GoogleFonts.poppins(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 3.w,
+                          vertical: 0.8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: kPrimaryPurple.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
                           children: [
-                            _buildAchievementsList(true),
-                            _buildAchievementsList(false),
+                            Icon(
+                              Icons.emoji_events,
+                              color: kPrimaryPurple,
+                              size: 20,
+                            ),
+                            SizedBox(width: 2.w),
+                            Text(
+                              "${_gameStateService.unlockedAchievementIds.length} Unlocked",
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: kPrimaryPurple,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAchievementGuide,
-        tooltip: 'Achievement Guide',
-        child: CustomIconWidget(
-          iconName: 'info_outline',
-          color: theme.colorScheme.onSecondary,
-          size: 24,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 3.h),
+                  // Stats Cards
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          "Level",
+                          "${_playerStats['level']}",
+                          Colors.blue,
+                          "trending_up",
+                        ),
+                      ),
+                      SizedBox(width: 3.w),
+                      Expanded(
+                        child: _buildStatCard(
+                          "Gems",
+                          "${_playerStats['totalGems']}",
+                          kPrimaryOrange,
+                          "diamond",
+                        ),
+                      ),
+                      SizedBox(width: 3.w),
+                      Expanded(
+                        child: _buildStatCard(
+                          "XP",
+                          "${_playerStats['totalXP']}",
+                          Colors.amber,
+                          "bolt",
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 3.h),
+                  // Tab Bar
+                  Container(
+                    height: 5.h,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicator: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      labelColor: Colors.black87,
+                      unselectedLabelColor: Colors.grey.shade600,
+                      labelStyle: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 10.sp,
+                      ),
+                      tabs: const [
+                        Tab(text: "Programs"),
+                        Tab(text: "Special"),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 1.h),
+                ],
+              ),
+            ),
+
+            // Tab Content
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                physics: BouncingScrollPhysics(),
+                children: [
+                  // Program Achievements
+                  _buildProgramTab(),
+                  // Special Achievements
+                  _buildSpecialTab(),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: CustomBottomBar(
@@ -504,28 +341,252 @@ class _AchievementGalleryState extends State<AchievementGallery>
     );
   }
 
-  Widget _buildAchievementsList(bool showUnlocked) {
-    final categories = _groupedAchievements.keys.toList();
+  Widget _buildStatCard(String label, String value, Color color, String icon) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 1.5.h, horizontal: 2.w),
+      decoration: BoxDecoration(
+        color: kCardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: color.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        children: [
+          CustomIconWidget(iconName: icon, color: color, size: 24),
+          SizedBox(height: 0.5.h),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              fontSize: 13.sp,
+              color: Colors.black87,
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w500,
+              fontSize: 8.sp,
+              color: Colors.grey.shade500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildProgramTab() {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: categories.length,
+      padding: EdgeInsets.all(4.w),
+      physics: ClampingScrollPhysics(),
+      itemCount: _groupedProgramAchievements.length,
       itemBuilder: (context, index) {
-        final category = categories[index];
-        final achievements = _groupedAchievements[category]!
-            .where((a) => a["unlocked"] == showUnlocked)
-            .toList();
+        final category = _groupedProgramAchievements.keys.elementAt(index);
+        final achievements = _groupedProgramAchievements[category]!;
 
-        if (achievements.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return AchievementCategorySection(
-          category: category,
-          achievements: achievements,
-          onAchievementTap: _showAchievementDetail,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(bottom: 1.5.h, top: 1.h),
+              child: Text(
+                category,
+                style: GoogleFonts.poppins(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+            ),
+            Row(
+              children: achievements.map((item) {
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 2.w),
+                    child: _buildProgramBadge(item),
+                  ),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 2.h),
+          ],
         );
       },
     );
+  }
+
+  Widget _buildProgramBadge(Map<String, dynamic> item) {
+    final unlocked = item['unlocked'] as bool;
+    final color = item['color'] as Color;
+
+    return Container(
+      height: 14.h,
+      decoration: BoxDecoration(
+        color: kCardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: unlocked
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ]
+            : [],
+        border: Border.all(
+          color: unlocked ? color.withValues(alpha: 0.3) : Colors.grey.shade200,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: EdgeInsets.all(2.w),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: unlocked
+                  ? color.withValues(alpha: 0.1)
+                  : Colors.grey.shade100,
+            ),
+            child: Icon(
+              unlocked ? _getIconData(item['icon']) : Icons.lock,
+              color: unlocked ? color : Colors.grey.shade400,
+              size: 24,
+            ),
+          ),
+          SizedBox(height: 1.h),
+          Text(
+            item['title'],
+            style: GoogleFonts.poppins(
+              fontSize: 9.sp,
+              fontWeight: FontWeight.w600,
+              color: unlocked ? Colors.black87 : Colors.grey.shade400,
+            ),
+          ),
+          Text(
+            unlocked ? item['tier'] : "Locked",
+            style: GoogleFonts.poppins(
+              fontSize: 7.sp,
+              color: unlocked ? color : Colors.grey.shade400,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpecialTab() {
+    return ListView.separated(
+      padding: EdgeInsets.all(4.w),
+      physics: BouncingScrollPhysics(),
+      itemCount: _specialAchievements.length,
+      separatorBuilder: (_, __) => SizedBox(height: 2.h),
+      itemBuilder: (context, index) {
+        final item = _specialAchievements[index];
+        final unlocked = item['unlocked'] as bool;
+        final startColor = item['startColor'] as Color;
+        final endColor = item['endColor'] as Color;
+
+        return Opacity(
+          opacity: unlocked ? 1.0 : 0.6,
+          child: Container(
+            height: 10.h,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: unlocked
+                    ? [startColor, endColor]
+                    : [Colors.grey.shade300, Colors.grey.shade400],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: unlocked
+                  ? [
+                      BoxShadow(
+                        color: startColor.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Row(
+              children: [
+                SizedBox(width: 4.w),
+                Container(
+                  padding: EdgeInsets.all(3.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: CustomIconWidget(
+                    iconName: item['icon'],
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                SizedBox(width: 4.w),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item['title'],
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        unlocked
+                            ? item['description']
+                            : "Keep playing to unlock!",
+                        style: GoogleFonts.poppins(
+                          fontSize: 9.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (unlocked)
+                  Padding(
+                    padding: EdgeInsets.only(right: 4.w),
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  IconData _getIconData(String name) {
+    switch (name) {
+      case 'verified':
+        return Icons.verified;
+      case 'workspace_premium':
+        return Icons.workspace_premium;
+      case 'military_tech':
+        return Icons.military_tech;
+      default:
+        return Icons.star;
+    }
   }
 }

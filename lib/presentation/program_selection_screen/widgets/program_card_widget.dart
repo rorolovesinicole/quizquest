@@ -22,7 +22,6 @@ class ProgramCardWidget extends StatelessWidget {
     final isStarted = program['isStarted'] as bool;
     final isCompleted = program['isCompleted'] as bool;
     final progress = program['progress'] as double;
-    final difficulty = program['difficulty'] as int;
     final themeColor = Color(program['themeColor'] as int);
 
     return GestureDetector(
@@ -123,17 +122,18 @@ class ProgramCardWidget extends StatelessWidget {
 
                   SizedBox(height: 0.4.h),
 
-                  // Difficulty stars
+                  // Dynamic Stars (Zones Cleared)
                   Row(
-                    children: List.generate(5, (index) {
+                    children: List.generate(3, (index) {
+                      final stars = (program['stars'] as int?) ?? 0;
                       return Padding(
-                        padding: EdgeInsets.only(right: 0.1.w),
+                        padding: EdgeInsets.only(right: 1.w),
                         child: CustomIconWidget(
-                          iconName: index < difficulty ? 'star' : 'star_border',
-                          color: index < difficulty
+                          iconName: index < stars ? 'star' : 'star_border',
+                          color: index < stars
                               ? theme.colorScheme.tertiary
                               : Colors.white.withValues(alpha: 0.5),
-                          size: 12,
+                          size: 16,
                         ),
                       );
                     }),

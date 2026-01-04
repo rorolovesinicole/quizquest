@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// GameStateService - Manages game state persistence using SharedPreferences
-/// 
+///
 /// Handles:
 /// - Player progress (current level, gems, XP)
 /// - Selected program
@@ -29,11 +29,11 @@ class GameStateService {
   static const int defaultXP = 0;
   static const int defaultHints = 3;
   static const String defaultProgram = '';
-  static const String defaultAvatar = 
+  static const String defaultAvatar =
       "https://api.dicebear.com/7.x/avataaars/png?seed=Felix&backgroundColor=b6e3f4";
 
   SharedPreferences? _prefs;
-  
+
   // Singleton pattern
   static final GameStateService _instance = GameStateService._internal();
   factory GameStateService() => _instance;
@@ -59,7 +59,8 @@ class GameStateService {
   int get totalXP => _prefs?.getInt(_keyTotalXP) ?? defaultXP;
 
   /// Get currently selected program ID
-  String get currentProgram => _prefs?.getString(_keyCurrentProgram) ?? defaultProgram;
+  String get currentProgram =>
+      _prefs?.getString(_keyCurrentProgram) ?? defaultProgram;
 
   /// Check if player has saved progress
   bool get hasSavedProgress => _prefs?.getBool(_keyHasSavedProgress) ?? false;
@@ -68,7 +69,8 @@ class GameStateService {
   int get hintsAvailable => _prefs?.getInt(_keyHintsAvailable) ?? defaultHints;
 
   /// Get character avatar URL
-  String get characterAvatar => _prefs?.getString(_keyCharacterAvatar) ?? defaultAvatar;
+  String get characterAvatar =>
+      _prefs?.getString(_keyCharacterAvatar) ?? defaultAvatar;
 
   /// Get player name
   String get playerName => _prefs?.getString(_keyPlayerName) ?? 'Player';
@@ -77,7 +79,8 @@ class GameStateService {
   double get musicVolume => _prefs?.getDouble(_keyMusicVolume) ?? 0.7;
 
   /// Get sound effects volume (0.0 - 1.0)
-  double get soundEffectsVolume => _prefs?.getDouble(_keySoundEffectsVolume) ?? 0.8;
+  double get soundEffectsVolume =>
+      _prefs?.getDouble(_keySoundEffectsVolume) ?? 0.8;
 
   /// Get level progress for a specific program
   /// Returns Map: { levelId: { 'completed': bool, 'stars': int, 'gems': int } }
@@ -110,12 +113,12 @@ class GameStateService {
   bool isLevelUnlocked(String programId, int levelId) {
     // Level 1 is always unlocked
     if (levelId == 1) return true;
-    
+
     // Check if previous level is completed
     final progress = getLevelProgress(programId);
     final previousLevelKey = (levelId - 1).toString();
     final previousLevel = progress[previousLevelKey] as Map<String, dynamic>?;
-    
+
     return previousLevel?['completed'] == true;
   }
 
@@ -232,7 +235,7 @@ class GameStateService {
   // ============ LEVEL COMPLETION ============
 
   /// Complete a level with results
-  /// 
+  ///
   /// [programId] - The program ID (e.g., 'bsit')
   /// [levelId] - The level number (1-18)
   /// [stars] - Stars earned (1-3)
@@ -247,24 +250,24 @@ class GameStateService {
   }) async {
     // Get current progress
     final progress = getLevelProgress(programId);
-    
+
     // Update level data (keep best score if already completed)
     final existingData = progress[levelId.toString()] as Map<String, dynamic>?;
     final existingStars = (existingData?['stars'] as int?) ?? 0;
     final existingGems = (existingData?['gems'] as int?) ?? 0;
-    
+
     progress[levelId.toString()] = {
       'completed': true,
       'stars': stars > existingStars ? stars : existingStars,
       'gems': gems > existingGems ? gems : existingGems,
     };
-    
+
     // Save progress
     await _prefs?.setString(
       '${_keyLevelProgress}_$programId',
       jsonEncode(progress),
     );
-    
+
     // Update totals (only add new gems/xp if this is first completion or better)
     if (existingData == null || existingData['completed'] != true) {
       await addGems(gems);
@@ -275,22 +278,25 @@ class GameStateService {
         await addGems(gems - existingGems);
       }
     }
-    
+
     // Update current level if this is the highest completed
     final highestLevel = _calculateHighestCompletedLevel(programId);
     if (highestLevel >= currentLevel) {
       await setCurrentLevel(highestLevel + 1);
     }
-    
+
     // Mark as having saved progress
     await _prefs?.setBool(_keyHasSavedProgress, true);
+
+    // Check for achievements immediately
+    await checkAndUnlockAchievements(programId);
   }
 
   /// Calculate the highest completed level for a program
   int _calculateHighestCompletedLevel(String programId) {
     final progress = getLevelProgress(programId);
     int highest = 0;
-    
+
     for (int i = 1; i <= 18; i++) {
       final levelData = progress[i.toString()] as Map<String, dynamic>?;
       if (levelData?['completed'] == true) {
@@ -299,7 +305,7 @@ class GameStateService {
         break; // Stop at first uncompleted level
       }
     }
-    
+
     return highest;
   }
 
@@ -307,13 +313,13 @@ class GameStateService {
   int getCompletedLevelsCount(String programId) {
     final progress = getLevelProgress(programId);
     int count = 0;
-    
+
     progress.forEach((key, value) {
       if (value is Map && value['completed'] == true) {
         count++;
       }
     });
-    
+
     return count;
   }
 
@@ -321,39 +327,147 @@ class GameStateService {
   int getTotalStars(String programId) {
     final progress = getLevelProgress(programId);
     int total = 0;
-    
+
     progress.forEach((key, value) {
       if (value is Map && value['stars'] != null) {
         total += (value['stars'] as int);
       }
     });
-    
+
     return total;
   }
 
+  /// Get number of cleared zones for a program (0-3)
+  /// Zone 1: Levels 1-6 completed
+  /// Zone 2: Levels 7-12 completed
+  /// Zone 3: Levels 13-18 completed
+  int getClearedZonesCount(String programId) {
+    final progress = getLevelProgress(programId);
+    int clearedZones = 0;
+
+    // Check Zone 1 (Levels 1-6)
+    bool zone1Cleared = true;
+    for (int i = 1; i <= 6; i++) {
+      if (progress[i.toString()] == null ||
+          progress[i.toString()]['completed'] != true) {
+        zone1Cleared = false;
+        break;
+      }
+    }
+    if (zone1Cleared)
+      clearedZones++;
+    else
+      return 0; // If Zone 1 not cleared, return 0 (zones must be cleared in order)
+
+    // Check Zone 2 (Levels 7-12)
+    bool zone2Cleared = true;
+    for (int i = 7; i <= 12; i++) {
+      if (progress[i.toString()] == null ||
+          progress[i.toString()]['completed'] != true) {
+        zone2Cleared = false;
+        break;
+      }
+    }
+    if (zone2Cleared)
+      clearedZones++;
+    else
+      return 1;
+
+    // Check Zone 3 (Levels 13-18)
+    bool zone3Cleared = true;
+    for (int i = 13; i <= 18; i++) {
+      if (progress[i.toString()] == null ||
+          progress[i.toString()]['completed'] != true) {
+        zone3Cleared = false;
+        break;
+      }
+    }
+    if (zone3Cleared) clearedZones++;
+
+    return clearedZones;
+  }
+
+  /// Check and unlock achievements for a program based on cleared zones
+  Future<void> checkAndUnlockAchievements(String programId) async {
+    final clearedZones = getClearedZonesCount(programId);
+
+    // Define achievement IDs for each program's zones
+    // Logic:
+    // Program ID -> [Zone 1 ID, Zone 2 ID, Zone 3 ID]
+    // These IDs should effectively map to a database of achievements.
+    // For this implementation, we will generate IDs deterministically or use a map.
+
+    // Example ID generation: hash(programId) + zoneIndex?
+    // Or simplified:
+    // BSIT: 101, 102, 103
+    // BSBA: 201, 202, 203
+    // etc.
+
+    final programPrefixes = {
+      'bsit': 100,
+      'bsba': 200,
+      'bsed': 300,
+      'beed': 400,
+      'bsa': 500,
+      'bshm': 600,
+      'bscs': 700,
+      'bscpe': 800,
+      'ahm': 900,
+    };
+
+    final prefix = programPrefixes[programId.toLowerCase()] ?? 1000;
+
+    if (clearedZones >= 1) await unlockAchievement(prefix + 1);
+    if (clearedZones >= 2) await unlockAchievement(prefix + 2);
+    if (clearedZones >= 3) await unlockAchievement(prefix + 3);
+  }
+
+  /// Unlock a special achievement by title
+  /// Mapped to fixed IDs:
+  /// Perfect Scholar: 88881
+  /// Speed Demon: 88882
+  /// Star Collector: 88883
+  Future<void> unlockSpecialAchievement(String type) async {
+    int id;
+    switch (type) {
+      case 'Perfect Scholar':
+        id = 88881;
+        break;
+      case 'Speed Demon':
+        id = 88882;
+        break;
+      case 'Star Collector':
+        id = 88883;
+        break;
+      default:
+        return;
+    }
+    await unlockAchievement(id);
+  }
+
   // ============ ECONOMY ============
-  
+
   static const String _keyOwnedItems = 'owned_items';
-  
+
   /// Get set of owned item IDs
   Set<String> get ownedItems {
     final itemsList = _prefs?.getStringList(_keyOwnedItems);
     return itemsList?.toSet() ?? {'default_outfit', 'default_hair'};
   }
-  
+
   /// Check if an item is owned
   bool isItemOwned(String itemId) {
     return ownedItems.contains(itemId);
   }
-  
+
   /// Purchase an item
   /// Returns true if successful, false if not enough gems
   Future<bool> purchaseItem(String itemId, int cost) async {
     if (isItemOwned(itemId)) return true;
-    
+
     if (totalGems >= cost) {
       await setTotalGems(totalGems - cost);
-      
+
       final currentItems = ownedItems;
       currentItems.add(itemId);
       await _prefs?.setStringList(_keyOwnedItems, currentItems.toList());
@@ -363,26 +477,29 @@ class GameStateService {
   }
 
   // ============ ACHIEVEMENTS ============
-  
+
   static const String _keyUnlockedAchievements = 'unlocked_achievements';
-  
+
   /// Get set of unlocked achievement IDs
   Set<int> get unlockedAchievementIds {
     final ids = _prefs?.getStringList(_keyUnlockedAchievements);
     return ids?.map((id) => int.parse(id)).toSet() ?? {};
   }
-  
+
   /// Check if achievement is unlocked
   bool isAchievementUnlocked(int id) {
     return unlockedAchievementIds.contains(id);
   }
-  
+
   /// Unlock an achievement
   Future<void> unlockAchievement(int id) async {
     if (!isAchievementUnlocked(id)) {
       final currentIds = unlockedAchievementIds;
       currentIds.add(id);
-      await _prefs?.setStringList(_keyUnlockedAchievements, currentIds.map((e) => e.toString()).toList());
+      await _prefs?.setStringList(
+        _keyUnlockedAchievements,
+        currentIds.map((e) => e.toString()).toList(),
+      );
     }
   }
 
@@ -401,7 +518,7 @@ class GameStateService {
     await _prefs?.remove(_keyCharacterAvatar);
     await _prefs?.remove(_keyOwnedItems);
     await _prefs?.remove(_keyUnlockedAchievements);
-    
+
     // Clear all program progress
     final keys = _prefs?.getKeys() ?? {};
     for (final key in keys) {

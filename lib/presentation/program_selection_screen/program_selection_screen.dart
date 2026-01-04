@@ -230,8 +230,50 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
   @override
   void initState() {
     super.initState();
-    _filteredPrograms = List.from(_programs);
+    _loadProgramStats();
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _loadProgramStats() async {
+    final gameStateService = GameStateService();
+    if (!gameStateService.isInitialized) {
+      await gameStateService.initialize();
+    }
+
+    setState(() {
+      for (var program in _programs) {
+        final programId = program['id'] as String;
+        final clearedZones = gameStateService.getClearedZonesCount(programId);
+
+        // Dynamic stats
+        // Stars = cleared zones (max 3)
+        // Progress = cleared zones / 3.0
+        // Difficulty display will optionally be repurposed to show "Zone Stars"
+        // But the user request specifically asked for stars per program to be dynamic based on zones.
+        // So we overwrite the 'difficulty' field usage or add a new 'stars' field.
+        // We'll add a 'stars' field and update the card to use it.
+
+        program['stars'] = clearedZones;
+        program['progress'] = clearedZones / 3.0;
+        program['isStarted'] =
+            clearedZones > 0 ||
+            gameStateService.getCompletedLevelsCount(programId) > 0;
+        program['isCompleted'] = clearedZones == 3;
+
+        // Achievements (Unlock checks)
+        // We can do this silently here or separately.
+        gameStateService.checkAndUnlockAchievements(programId);
+
+        // Populate display achievements based on zones
+        // Ideally these should come from a central registry, but for now we'll mock the specific ones requested
+        final achievements = <String>[];
+        if (clearedZones >= 1) achievements.add("Zone 1 Master");
+        if (clearedZones >= 2) achievements.add("Zone 2 Master");
+        if (clearedZones >= 3) achievements.add("Program Master");
+        program['achievements'] = achievements;
+      }
+      _filteredPrograms = List.from(_programs); // Trigger rebuild with new data
+    });
   }
 
   @override
@@ -259,7 +301,8 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
     setState(() => _isRefreshing = true);
 
     // Simulate content update and achievement check
-    await Future.delayed(const Duration(seconds: 2));
+    await _loadProgramStats();
+    await Future.delayed(const Duration(seconds: 1));
 
     setState(() => _isRefreshing = false);
 

@@ -33,11 +33,11 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
   int _gemsCollected = 10;
   int _correctAnswers = 7;
   int _totalQuestions = 10;
-  
+
   final int _totalLevels = 18; // 6 levels x 3 zones
   String _zoneName = 'Foundational Concepts';
   String _programName = 'BSIT Program';
-  
+
   final GameStateService _gameStateService = GameStateService();
 
   final List<Map<String, dynamic>> _achievements = [];
@@ -56,12 +56,14 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
     if (!_gameStateService.isInitialized) {
       await _gameStateService.initialize();
     }
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
       setState(() {
-        _programId = args?['programId'] as String? ?? _gameStateService.currentProgram;
+        _programId =
+            args?['programId'] as String? ?? _gameStateService.currentProgram;
         if (_programId.isEmpty) _programId = 'bsit';
         _levelId = args?['levelId'] as int? ?? 1;
         _levelTitle = args?['levelTitle'] as String? ?? 'Level $_levelId';
@@ -71,22 +73,22 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
         _gemsCollected = args?['gemsCollected'] as int? ?? 10;
         _correctAnswers = args?['correctAnswers'] as int? ?? 7;
         _totalQuestions = args?['totalQuestions'] as int? ?? 10;
-        
+
         _programName = _getProgramDisplayName(_programId);
         _zoneName = _getZoneName(_levelId);
-        
+
         // Generate achievements based on performance
         _generateAchievements();
-        
+
         _isLoading = false;
       });
-      
+
       // Save progress to GameStateService
       if (!_progressSaved) {
         await _saveProgress();
         _progressSaved = true;
       }
-      
+
       _triggerCelebrationEffects();
     });
   }
@@ -108,42 +110,50 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
 
   String _getZoneName(int levelId) {
     final zoneIndex = (levelId - 1) ~/ 6;
-    const zones = ['Foundational Concepts', 'Core Principles', 'Advanced Applications'];
+    const zones = [
+      'Foundational Concepts',
+      'Core Principles',
+      'Advanced Applications',
+    ];
     return zones[zoneIndex.clamp(0, 2)];
   }
 
   void _generateAchievements() {
     _achievements.clear();
-    
+
     if (_accuracy >= 90) {
       _achievements.add({
         "icon": "workspace_premium",
         "title": "Perfect Scholar",
         "description": "Achieved 90%+ accuracy",
       });
+      _gameStateService.unlockSpecialAchievement('Perfect Scholar');
     }
-    
+
     if (_timeTaken < 180) {
       _achievements.add({
         "icon": "speed",
         "title": "Speed Demon",
         "description": "Completed level in under 3 minutes",
       });
+      _gameStateService.unlockSpecialAchievement('Speed Demon');
     }
-    
+
     if (_starsEarned == 3) {
       _achievements.add({
         "icon": "star",
         "title": "Star Collector",
         "description": "Earned all 3 stars",
       });
+      _gameStateService.unlockSpecialAchievement('Star Collector');
     }
   }
 
   Future<void> _saveProgress() async {
     // Calculate XP based on performance
-    final xpEarned = (_accuracy * 10 + _gemsCollected * 2 + (_starsEarned * 50)).round();
-    
+    final xpEarned = (_accuracy * 10 + _gemsCollected * 2 + (_starsEarned * 50))
+        .round();
+
     await _gameStateService.completeLevelWithResults(
       programId: _programId,
       levelId: _levelId,
@@ -180,7 +190,8 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
 
   Widget _buildScoringBreakdownModal() {
     final theme = Theme.of(context);
-    final totalPoints = (_accuracy * 10 + _gemsCollected * 10 + _starsEarned * 50).round();
+    final totalPoints =
+        (_accuracy * 10 + _gemsCollected * 10 + _starsEarned * 50).round();
 
     return Container(
       decoration: BoxDecoration(
@@ -200,18 +211,45 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
             ),
           ),
           SizedBox(height: 2.h),
-          Text('Score Breakdown', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            'Score Breakdown',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           SizedBox(height: 2.h),
-          _buildBreakdownItem('Accuracy Bonus', '${(_accuracy * 10).round()} pts', '${_accuracy.round()}% accuracy'),
-          _buildBreakdownItem('Gems Collected', '${_gemsCollected * 10} pts', '$_gemsCollected gems × 10'),
-          _buildBreakdownItem('Star Bonus', '${_starsEarned * 50} pts', '$_starsEarned stars × 50'),
+          _buildBreakdownItem(
+            'Accuracy Bonus',
+            '${(_accuracy * 10).round()} pts',
+            '${_accuracy.round()}% accuracy',
+          ),
+          _buildBreakdownItem(
+            'Gems Collected',
+            '${_gemsCollected * 10} pts',
+            '$_gemsCollected gems × 10',
+          ),
+          _buildBreakdownItem(
+            'Star Bonus',
+            '${_starsEarned * 50} pts',
+            '$_starsEarned stars × 50',
+          ),
           Divider(height: 3.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total Score', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-              Text('$totalPoints pts', style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
+              Text(
+                'Total Score',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                '$totalPoints pts',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 3.h),
@@ -231,13 +269,28 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
-                Text(description, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                Text(
+                  label,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  description,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
-          Text(value, style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.tertiary, fontWeight: FontWeight.w700)),
+          Text(
+            value,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.tertiary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );
@@ -245,37 +298,50 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
 
   void _handleContinueAdventure() {
     HapticFeedback.lightImpact();
-    
+
     if (_levelId == _totalLevels) {
-      Navigator.pushReplacementNamed(context, AppRoutes.programCertificate, arguments: {
-        'programName': _programName,
-        'programId': _programId,
-        'completionDate': DateTime.now(),
-        'totalScore': (_accuracy * 10 + _gemsCollected * 10 + _starsEarned * 50).round(),
-        'starsEarned': _gameStateService.getTotalStars(_programId),
-        'totalStars': _totalLevels * 3,
-        'gemsCollected': _gameStateService.totalGems,
-        'accuracy': _accuracy,
-      });
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.programCertificate,
+        arguments: {
+          'programName': _programName,
+          'programId': _programId,
+          'completionDate': DateTime.now(),
+          'totalScore':
+              (_accuracy * 10 + _gemsCollected * 10 + _starsEarned * 50)
+                  .round(),
+          'starsEarned': _gameStateService.getTotalStars(_programId),
+          'totalStars': _totalLevels * 3,
+          'gemsCollected': _gameStateService.totalGems,
+          'accuracy': _accuracy,
+        },
+      );
     } else {
-      Navigator.pushReplacementNamed(context, AppRoutes.gameWorldMap, arguments: {
-        'programId': _programId,
-      });
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.gameWorldMap,
+        arguments: {'programId': _programId},
+      );
     }
   }
 
   void _handleReplayLevel() {
     HapticFeedback.lightImpact();
-    Navigator.pushReplacementNamed(context, AppRoutes.quizGameplay, arguments: {
-      'programId': _programId,
-      'levelId': _levelId,
-      'levelTitle': _levelTitle,
-    });
+    Navigator.pushReplacementNamed(
+      context,
+      AppRoutes.quizGameplay,
+      arguments: {
+        'programId': _programId,
+        'levelId': _levelId,
+        'levelTitle': _levelTitle,
+      },
+    );
   }
 
   void _handleShareScore() {
     HapticFeedback.lightImpact();
-    final totalPoints = (_accuracy * 10 + _gemsCollected * 10 + _starsEarned * 50).round();
+    final totalPoints =
+        (_accuracy * 10 + _gemsCollected * 10 + _starsEarned * 50).round();
     Share.share(
       'I just completed $_levelTitle in QuizQuest Academy with $_starsEarned stars and $totalPoints points! 🎉',
       subject: 'QuizQuest Academy Score',
@@ -294,7 +360,8 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
     }
 
     final timeDuration = Duration(seconds: _timeTaken);
-    final timeString = '${timeDuration.inMinutes}:${(timeDuration.inSeconds % 60).toString().padLeft(2, '0')}';
+    final timeString =
+        '${timeDuration.inMinutes}:${(timeDuration.inSeconds % 60).toString().padLeft(2, '0')}';
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -306,16 +373,25 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
               child: Column(
                 children: [
                   // Header
-                  Text('Level Complete!', style: theme.textTheme.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.w700, color: theme.colorScheme.primary)),
+                  Text(
+                    'Level Complete!',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
                   SizedBox(height: 1.h),
-                  Text(_levelTitle, style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant)),
+                  Text(
+                    _levelTitle,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                   SizedBox(height: 3.h),
 
                   // Star Rating
                   StarRatingWidget(
-                    stars: _starsEarned, 
+                    stars: _starsEarned,
                     onLongPress: _showScoringBreakdownModal,
                   ),
                   SizedBox(height: 3.h),
@@ -325,7 +401,8 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
                     accuracy: _accuracy,
                     timeTaken: Duration(seconds: _timeTaken),
                     gemsCollected: _gemsCollected,
-                    bonusPoints: (_starsEarned * 50), // Calculating bonus points
+                    bonusPoints:
+                        (_starsEarned * 50), // Calculating bonus points
                   ),
                   SizedBox(height: 3.h),
 
@@ -341,7 +418,8 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
                   if (_achievements.isNotEmpty) ...[
                     AchievementsWidget(
                       achievements: _achievements,
-                      nextLevelRequirement: "Complete next level to unlock more!", // meaningful default
+                      nextLevelRequirement:
+                          "Complete next level to unlock more!", // meaningful default
                     ),
                     SizedBox(height: 3.h),
                   ],
@@ -361,7 +439,9 @@ class _LevelCompleteScreenState extends State<LevelCompleteScreen>
           // Confetti
           if (_showConfetti)
             Positioned.fill(
-              child: IgnorePointer(child: ConfettiAnimationWidget(isPlaying: _showConfetti)),
+              child: IgnorePointer(
+                child: ConfettiAnimationWidget(isPlaying: _showConfetti),
+              ),
             ),
         ],
       ),
