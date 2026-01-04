@@ -303,7 +303,11 @@ class ProgramDetailModal extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.pop(context);
-                        Navigator.pushNamed(context, '/game-world-map-screen');
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.gameWorldMap,
+                          arguments: {'programId': program['id']},
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeColor,

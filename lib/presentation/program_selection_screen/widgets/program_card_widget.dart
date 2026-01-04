@@ -63,7 +63,7 @@ class ProgramCardWidget extends StatelessWidget {
 
             // Content
             Padding(
-              padding: EdgeInsets.all(3.w),
+              padding: EdgeInsets.all(1.5.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -73,8 +73,8 @@ class ProgramCardWidget extends StatelessWidget {
                     children: [
                       Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: 2.w,
-                          vertical: 0.5.h,
+                          horizontal: 1.w,
+                          vertical: 0.3.h,
                         ),
                         decoration: BoxDecoration(
                           color: themeColor,
@@ -85,13 +85,14 @@ class ProgramCardWidget extends StatelessWidget {
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
+                            fontSize: 9.sp,
                           ),
                         ),
                       ),
 
                       if (isCompleted)
                         Container(
-                          padding: EdgeInsets.all(1.w),
+                          padding: EdgeInsets.all(0.8.w),
                           decoration: BoxDecoration(
                             color: theme.colorScheme.tertiary,
                             shape: BoxShape.circle,
@@ -99,7 +100,7 @@ class ProgramCardWidget extends StatelessWidget {
                           child: CustomIconWidget(
                             iconName: 'emoji_events',
                             color: Colors.white,
-                            size: 16,
+                            size: 14,
                           ),
                         ),
                     ],
@@ -113,31 +114,32 @@ class ProgramCardWidget extends StatelessWidget {
                     style: theme.textTheme.titleSmall?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
-                      height: 1.2,
+                      height: 1.1,
+                      fontSize: 10.sp,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                  SizedBox(height: 1.h),
+                  SizedBox(height: 0.4.h),
 
                   // Difficulty stars
                   Row(
                     children: List.generate(5, (index) {
                       return Padding(
-                        padding: EdgeInsets.only(right: 0.5.w),
+                        padding: EdgeInsets.only(right: 0.1.w),
                         child: CustomIconWidget(
                           iconName: index < difficulty ? 'star' : 'star_border',
                           color: index < difficulty
                               ? theme.colorScheme.tertiary
                               : Colors.white.withValues(alpha: 0.5),
-                          size: 14,
+                          size: 12,
                         ),
                       );
                     }),
                   ),
 
-                  SizedBox(height: 1.h),
+                  SizedBox(height: 0.4.h),
 
                   // Estimated time
                   Row(
@@ -145,13 +147,15 @@ class ProgramCardWidget extends StatelessWidget {
                       CustomIconWidget(
                         iconName: 'schedule',
                         color: Colors.white.withValues(alpha: 0.8),
-                        size: 14,
+                        size: 12,
                       ),
-                      SizedBox(width: 1.w),
+                      SizedBox(width: 0.5.w),
                       Text(
                         program['estimatedTime'] as String,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: Colors.white.withValues(alpha: 0.8),
+                          fontSize: 10.sp,
+                          height: 1.0,
                         ),
                       ),
                     ],
@@ -159,7 +163,8 @@ class ProgramCardWidget extends StatelessWidget {
 
                   // Progress bar (if started)
                   if (isStarted) ...[
-                    SizedBox(height: 1.h),
+                    SizedBox(height: 0.4.h),
+                    SizedBox(height: 0.5.h),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
@@ -169,7 +174,7 @@ class ProgramCardWidget extends StatelessWidget {
                         minHeight: 0.6.h,
                       ),
                     ),
-                    SizedBox(height: 0.5.h),
+                    SizedBox(height: 0.3.h),
                     Text(
                       '${(progress * 100).toInt()}% Complete',
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -181,7 +186,7 @@ class ProgramCardWidget extends StatelessWidget {
 
                   // Achievement badges
                   if ((program['achievements'] as List).isNotEmpty) ...[
-                    SizedBox(height: 1.h),
+                    SizedBox(height: 0.8.h),
                     Wrap(
                       spacing: 1.w,
                       children: (program['achievements'] as List).take(2).map((

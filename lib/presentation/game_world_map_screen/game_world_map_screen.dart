@@ -202,7 +202,7 @@ class _GameWorldMapScreenState extends State<GameWorldMapScreen>
   void _onScroll() {
     setState(() {
       _scrollOffset = _scrollController.offset;
-      final zoneWidth = 85.w + 4.w;
+      final zoneWidth = 76.w + 2.w;
       _currentZoneIndex = (_scrollOffset / zoneWidth).floor().clamp(0, _worldZones.length - 1);
     });
   }

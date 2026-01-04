@@ -28,15 +28,15 @@ class WorldMapZoneWidget extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      width: 85.w,
-      margin: EdgeInsets.symmetric(horizontal: 2.w),
+      width: 76.w,
+      margin: EdgeInsets.symmetric(horizontal: 1.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Zone header with theme icon and title
           _buildZoneHeader(theme),
 
-          SizedBox(height: 2.h),
+          SizedBox(height: 0.8.h),
 
           // Zone background container with levels
           _buildZoneContainer(theme),
@@ -94,6 +94,7 @@ class WorldMapZoneWidget extends StatelessWidget {
                         ? theme.colorScheme.onSurface
                         : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     fontWeight: FontWeight.w700,
+                    fontSize: 11.sp,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -126,7 +127,7 @@ class WorldMapZoneWidget extends StatelessWidget {
     final levels = zoneData['levels'] as List<Map<String, dynamic>>;
 
     return Container(
-      padding: EdgeInsets.all(4.w),
+      padding: EdgeInsets.all(2.5.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -161,7 +162,7 @@ class WorldMapZoneWidget extends StatelessWidget {
           ...List.generate(
             6,
             (index) => Padding(
-              padding: EdgeInsets.only(bottom: 2.h),
+              padding: EdgeInsets.only(bottom: 0.8.h),
               child: index < 5 
                   ? _buildLevelNode(theme, levels[index], index + 1)
                   : _buildBossLevelNode(theme, levels[index]),
@@ -187,7 +188,7 @@ class WorldMapZoneWidget extends StatelessWidget {
       child: Opacity(
         opacity: isLocked ? 0.5 : 1.0,
         child: Container(
-          padding: EdgeInsets.all(3.w),
+          padding: EdgeInsets.all(2.w),
           decoration: BoxDecoration(
             color: isCompleted
                 ? theme.colorScheme.primary.withValues(alpha: 0.1)
@@ -236,7 +237,7 @@ class WorldMapZoneWidget extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(width: 3.w),
+              SizedBox(width: 2.w),
 
               // Level info
               Expanded(
@@ -247,12 +248,13 @@ class WorldMapZoneWidget extends StatelessWidget {
                       levelData['title'] as String,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
+                        fontSize: 10.sp,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (isCompleted) ...[
-                      SizedBox(height: 0.5.h),
+                      SizedBox(height: 0.3.h),
                       Row(
                         children: [
                           // Star rating
@@ -272,7 +274,7 @@ class WorldMapZoneWidget extends StatelessWidget {
                             ),
                           ),
 
-                          SizedBox(width: 2.w),
+                          SizedBox(width: 1.5.w),
 
                           // Gems collected
                           CustomIconWidget(
@@ -340,7 +342,7 @@ class WorldMapZoneWidget extends StatelessWidget {
       child: Opacity(
         opacity: isLocked ? 0.5 : 1.0,
         child: Container(
-          padding: EdgeInsets.all(4.w),
+          padding: EdgeInsets.all(3.w),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -402,7 +404,7 @@ class WorldMapZoneWidget extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(width: 4.w),
+              SizedBox(width: 3.w),
 
               // Boss level info
               Expanded(
@@ -422,12 +424,13 @@ class WorldMapZoneWidget extends StatelessWidget {
                       bossData['title'] as String,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
+                        fontSize: 11.sp,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (isCompleted) ...[
-                      SizedBox(height: 1.h),
+                      SizedBox(height: 0.8.h),
                       Row(
                         children: List.generate(
                           3,
@@ -444,7 +447,7 @@ class WorldMapZoneWidget extends StatelessWidget {
                         ),
                       ),
                     ] else if (!isLocked) ...[
-                      SizedBox(height: 0.5.h),
+                      SizedBox(height: 0.3.h),
                       Text(
                         'Complete all levels to unlock',
                         style: theme.textTheme.bodySmall?.copyWith(

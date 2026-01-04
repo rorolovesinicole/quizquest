@@ -654,14 +654,14 @@ class _ProgramSelectionScreenState extends State<ProgramSelectionScreen> {
                     : GridView.builder(
                         controller: _scrollController,
                         padding: EdgeInsets.symmetric(
-                          horizontal: 4.w,
+                          horizontal: 2.w,
                           vertical: 2.h,
                         ),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 4.w,
+                          crossAxisSpacing: 2.w,
                           mainAxisSpacing: 2.h,
-                          childAspectRatio: 0.75,
+                          childAspectRatio: 0.66,
                         ),
                         itemCount: _filteredPrograms.length,
                         itemBuilder: (context, index) {
