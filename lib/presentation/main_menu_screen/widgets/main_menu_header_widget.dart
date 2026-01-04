@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_export.dart';
-import '../../../widgets/custom_icon_widget.dart';
-
 /// Header widget for Main Menu Screen
 ///
 /// Displays the QuizQuest Academy logo and title with animated elements
@@ -35,10 +32,11 @@ class MainMenuHeaderWidget extends StatelessWidget {
             ],
           ),
           child: Center(
-            child: CustomIconWidget(
-              iconName: 'school',
-              color: Colors.white,
-              size: 64,
+            child: Image.asset(
+              'assets/images/img_app_logo.png',
+              width: 64,
+              height: 64,
+              fit: BoxFit.contain,
             ),
           ),
         ),

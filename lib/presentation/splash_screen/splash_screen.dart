@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/app_export.dart';
-import '../../widgets/custom_icon_widget.dart';
+
 import '../../services/game_state_service.dart';
 
 /// Splash Screen for QuizQuest Academy
@@ -218,10 +218,11 @@ class _SplashScreenState extends State<SplashScreen>
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Center(
-                  child: CustomIconWidget(
-                    iconName: 'school',
-                    color: Colors.white,
-                    size: 64,
+                  child: Image.asset(
+                    'assets/images/img_app_logo.png',
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
